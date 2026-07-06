@@ -22,3 +22,5 @@ firmware/test/README
 *.kicad_sch-bak
 *.3mf
 firmware/pico/.clang-format
+/electronics
+/firmware/.pio
