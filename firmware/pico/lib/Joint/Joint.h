@@ -1,26 +1,33 @@
 #pragma once
+#include <cstdint>
 #include "Servo.h"
 
+struct JointConfig {
+    uint8_t  gpio;
+    uint16_t minPulse;   // pulse width in µs at 0°
+    uint16_t maxPulse;   // pulse width in µs at 180°
+    float    minAngle;   // physical lower limit (degrees)
+    float    maxAngle;   // physical upper limit (degrees)
+    float    offset;     // trim added after inversion (degrees)
+    bool     inverted;   // if true, angle is mirrored about 90°
+};
+
 class Joint {
-    private:
-        Servo actuator;
+public:
+    explicit Joint(const JointConfig &config);
 
-        // physical parameters of this joint
-        float offset_angle;
-        float min_angle;
-        float max_angle;
-        bool  inverted;
+    void  setAngle(float angle);
+    float getAngle() const { return _currentAngle; }
 
-    public:
-        Joint(uint pin);
+    void enable();
+    void disable();
+    bool isEnabled() const { return _enabled; }
 
-        void init();
+private:
+    JointConfig _cfg;
+    Servo       _servo;
+    float       _currentAngle = 90.0f;
+    bool        _enabled      = true;
 
-        // set limits and offsets for this joint
-        void configure(float min, float max, float offset, bool invert = false);
-
-        // takes the IK angle and applies physical corrections
-        void setAngle(float desired_angle);
-
-        float getOffset() const { return offset_angle; }
+    uint16_t angleToPulse(float angle) const;
 };
