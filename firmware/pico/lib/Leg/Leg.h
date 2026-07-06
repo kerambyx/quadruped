@@ -1,27 +1,42 @@
 #pragma once
+#include <cstdint>
 #include "Joint.h"
-#include <math.h>
+
+struct LegConfig {
+    JointConfig coxa;
+    JointConfig femur;
+    JointConfig tibia;
+    float coxaLength;
+    float femurLength;
+    float tibiaLength;
+};
 
 class Leg {
-private:
-    Joint coxa;  // Hip pan
-    Joint femur; // Hip tilt
-    Joint tibia; // Knee
-
-    // physical parameters (mm
-    const float L_COXA = 30.0f;
-    const float L_FEMUR = 50.0f;
-    const float L_TIBIA = 60.0f;
-
 public:
-    Leg(uint coxa_pin, uint femur_pin, uint tibia_pin);
-    
-    // is_right_side allows the leg to invert its joints automatically
-    void init(bool is_right_side);
-    
-    // inverse kinematics math function
+    explicit Leg(const LegConfig &config);
+
     void moveTo(float x, float y, float z);
-    
+    void moveToSmooth(float x, float y, float z,
+                      float    maxDegPerSec = 120.0f,
+                      uint16_t stepMs       = 10);
+
     void home();
-    void restPosition();
+    void stand();
+    void crouch();
+    void fold();
+
+    void enable();
+    void disable();
+    bool isEnabled() const { return _enabled; }
+void testAngles(float coxaDeg, float femurDeg, float tibiaDeg);
+
+private:
+    LegConfig _cfg;
+    Joint     _coxa;
+    Joint     _femur;
+    Joint     _tibia;
+    bool      _enabled = true;
+
+    void solveIK(float x, float y, float z,
+                 float &outCoxa, float &outFemur, float &outTibia) const;
 };
